@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -99,8 +100,11 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
 </nav>
 </div>
 <div id="toast" class="toast hidden"></div>
-<script>
-const KEY='directDiaryPrototypeEntries';
+const SUPABASE_URL = 'https://ouhmhieripxuzvvppwro.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SDvuvqUfnFKJ0hhTNL8N4w_CFOUFypQ';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const KEY = 'directDiaryPrototypeEntries';
 let currentUser='diary_user',photoData='';
 const samples=[
 {id:'s1',name:'あおい',date:'今日 09:12',visibility:'友達全体',title:'朝の散歩',body:'少し早起きして近所を散歩した。空気が気持ちよくて、いつもより一日が長く感じられそう。帰りに小さな花を見つけた。',photo:'',likes:3,liked:false,comments:[{name:'ゆう',text:'朝の空気っていいよね！'}]},
