@@ -160,6 +160,17 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
 <div id="groupList">
   <div class="paper-card empty">グループを読み込んでいます...</div>
 </div>
+  <div id="groupMemberPanel" class="paper-card hidden">
+  <h2 style="font:500 19px Georgia,serif">メンバーを追加</h2>
+  <p class="hint">招待したい友達を選んでください。</p>
+  <div id="groupMemberChoices"></div>
+  <button class="primary" style="width:100%" onclick="inviteGroupMembers()">
+    選択した友達を追加
+  </button>
+  <button class="secondary" style="width:100%;margin-top:10px" onclick="closeGroupMembers()">
+    閉じる
+  </button>
+</div>
 </section>
 <section id="profileView" class="view">
   <div class="eyebrow">YOUR PROFILE</div><h1>プロフィール</h1><p class="sub">あなたらしいページに整えよう。</p>
