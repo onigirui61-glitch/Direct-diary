@@ -506,7 +506,7 @@ async function searchFriend(){
     toast('検索エラー：'+error.message);
     return;
   }
-
+console.log('検索結果:',{q,profile,error});
   if(!profile){
     r.innerHTML='<p class="hint">ユーザーが見つかりませんでした。</p>';
     return;
