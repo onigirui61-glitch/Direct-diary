@@ -305,36 +305,7 @@ async function publishEntry(){
 }
 
 
-  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
-
-  if(userError || !user){
-    toast('ログイン状態を確認できませんでした');
-    return;
-  }
-
-  const {error}=await supabaseClient
-    .from('diary_posts')
-    .insert({
-      user_id:user.id,
-      title:title,
-      content:body
-    });
-
-  if(error){
-    toast('保存エラー：'+error.message);
-    return;
-  }
-
-  document.getElementById('entryTitle').value='';
-  document.getElementById('entryBody').value='';
-  document.getElementById('entryPhoto').value='';
-  document.getElementById('photoPreview').classList.add('hidden');
-  photoData='';
-
-  toast('日記を保存しました');
-  showView('home');
-}
-
+  
 async function renderFeed(){
   const feed=document.getElementById('feed');
 
