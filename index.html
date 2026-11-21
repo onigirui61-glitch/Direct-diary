@@ -393,6 +393,12 @@ async function renderGroups(){
           </div>
           <span class="visibility">${isOwner?'作成者':'参加中'}</span>
         </div>
+        ${isOwner?`
+          <button class="secondary"
+            onclick="openGroupMembers('${g.id}')">
+            ＋ メンバーを追加
+          </button>
+        `:''}
       </div>
     `;
   }).join('');
