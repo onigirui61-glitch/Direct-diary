@@ -1329,6 +1329,33 @@ async function toggleFollow(targetId,isFollowing){
 await renderFriendList();
 }
 
+document.getElementById('avatarFile').addEventListener('change', function(){
+  const file = this.files[0];
+  const preview = document.getElementById('avatarPreview');
+
+  if(!file){
+    preview.classList.add('hidden');
+    return;
+  }
+
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)){
+    toast('JPEG・PNG・WebPの画像を選んでください');
+    this.value = '';
+    preview.classList.add('hidden');
+    return;
+  }
+
+  if(file.size > 5242880){
+    toast('画像は5MB以下にしてください');
+    this.value = '';
+    preview.classList.add('hidden');
+    return;
+  }
+
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+});
+
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
 </script>
