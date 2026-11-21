@@ -96,9 +96,7 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
     <label>公開範囲</label><select id="entryVisibility" onchange="toggleRecipient()"><option value="friends">友達全体</option><option value="direct">特定の友達</option><option value="group">グループ</option><option value="private">自分だけ</option></select>
     <div id="recipientWrap" class="hidden"><label id="recipientLabel">公開先</label>
       
-<select id="recipient">
-  <option value="">友達を選択してください</option>
-</select>
+<div id="recipient"></div>
     </div>
     <button class="primary" style="width:100%" onclick="publishEntry()">日記を投稿する</button>
     <p class="hint">※試作品では投稿内容はこのブラウザ内に保存されます。他の人の端末には共有されません。</p>
@@ -267,13 +265,13 @@ function showView(name){
 async function toggleRecipient(){
   const v=document.getElementById('entryVisibility').value;
   const w=document.getElementById('recipientWrap');
-  const select=document.getElementById('recipient');
+  const recipient=document.getElementById('recipient');
 
   w.classList.toggle('hidden',v==='friends'||v==='private');
 
   if(v==='direct'){
-    document.getElementById('recipientLabel').textContent='送る友達';
-    select.innerHTML='<option value="">読み込み中...</option>';
+    document.getElementById('recipientLabel').textContent='公開する友達（複数選択可）';
+    recipient.innerHTML='<p class="hint">友達を読み込んでいます...</p>';
 
     const {data:{user}}=await supabaseClient.auth.getUser();
 
@@ -290,7 +288,7 @@ async function toggleRecipient(){
     }
 
     if(!follows || follows.length===0){
-      select.innerHTML='<option value="">フォロー中の友達がいません</option>';
+      recipient.innerHTML='<p class="hint">フォロー中の友達がいません。</p>';
       return;
     }
 
@@ -306,15 +304,16 @@ async function toggleRecipient(){
       return;
     }
 
-    select.innerHTML='<option value="">友達を選択してください</option>';
-
-    profiles.forEach(p=>{
-      select.innerHTML+=`<option value="${p.id}">${esc(p.display_name)} (@${esc(p.username)})</option>`;
-    });
+    recipient.innerHTML=profiles.map(p=>`
+      <label style="display:flex;align-items:center;gap:9px;padding:9px 4px;margin:0;border-bottom:1px solid #eee5d9">
+        <input type="checkbox" class="recipient-checkbox" value="${p.id}" style="width:18px;height:18px;margin:0">
+        <span>${esc(p.display_name)} (@${esc(p.username)})</span>
+      </label>
+    `).join('');
 
   }else if(v==='group'){
     document.getElementById('recipientLabel').textContent='公開するグループ';
-    select.innerHTML='<option value="">グループ公開は準備中です</option>';
+    recipient.innerHTML='<p class="hint">グループ公開はまだ準備中です。</p>';
   }
 }
 function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
