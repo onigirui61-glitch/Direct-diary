@@ -593,6 +593,7 @@ async function inviteGroupMembers(){
   closeGroupMembers();
   await renderGroups();
 }
+
 async function toggleRecipient(){
   const v=document.getElementById('entryVisibility').value;
   const w=document.getElementById('recipientWrap');
@@ -644,11 +645,33 @@ async function toggleRecipient(){
 
   }else if(v==='group'){
     document.getElementById('recipientLabel').textContent='公開するグループ';
-    recipient.innerHTML='<p class="hint">グループ公開はまだ準備中です。</p>';
+    recipient.innerHTML='<p class="hint">グループを読み込んでいます...</p>';
+
+    const {data:groups,error}=await supabaseClient
+      .from('diary_groups')
+      .select('id,name')
+      .order('created_at',{ascending:false});
+
+    if(error){
+      toast('グループを読み込めませんでした：'+error.message);
+      return;
+    }
+
+    if(!groups || groups.length===0){
+      recipient.innerHTML='<p class="hint">参加しているグループがありません。</p>';
+      return;
+    }
+
+    recipient.innerHTML=`
+      <select id="groupRecipient">
+        <option value="">グループを選択してください</option>
+        ${groups.map(g=>`
+          <option value="${g.id}">${esc(g.name)}</option>
+        `).join('')}
+      </select>
+    `;
   }
 }
-function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
-
 
 
 async function publishEntry(){
