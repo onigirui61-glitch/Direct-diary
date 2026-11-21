@@ -464,7 +464,23 @@ async function renderFeed(){
   (profiles||[]).forEach(p=>{
     profileMap[p.id]=p;
   });
+  const {data:likes,error:likesError}=await supabaseClient
+    .from('diary_likes')
+    .select('post_id,user_id');
 
+  if(likesError){
+    toast('いいね情報を読み込めませんでした');
+    return;
+  }
+
+  const likesByPost={};
+
+  (likes||[]).forEach(like=>{
+    if(!likesByPost[like.post_id]){
+      likesByPost[like.post_id]=[];
+    }
+    likesByPost[like.post_id].push(like.user_id);
+  });
   const visibilityNames={
     friends:'友達全体',
     direct:'特定の友達',
@@ -503,12 +519,21 @@ async function renderFeed(){
       }
     }
 
-    const actionsHTML=isMine?`
+        const postLikes=likesByPost[p.id]||[];
+    const liked=postLikes.includes(user.id);
+
+    const actionsHTML=`
       <div class="post-actions">
-        <button class="action" onclick="editPost('${p.id}')">✎ 編集</button>
-        <button class="action" onclick="deletePost('${p.id}')">削除</button>
+        <button class="action ${liked?'liked':''}"
+          onclick="likePost('${p.id}')">
+          ♥ ${postLikes.length} いいね
+        </button>
+        ${isMine?`
+          <button class="action" onclick="editPost('${p.id}')">✎ 編集</button>
+          <button class="action" onclick="deletePost('${p.id}')">削除</button>
+        `:''}
       </div>
-    `:'';
+    `;
 
     return `<article class="paper-card">
       <div class="post-top">
