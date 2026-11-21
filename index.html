@@ -1404,9 +1404,9 @@ async function uploadAvatar(){
     .eq('id',user.id);
 
   if(updateError){
-    toast('プロフィール画像の更新に失敗しました');
-    return;
-  }
+  toast('更新エラー：'+updateError.message);
+  return;
+}
 
   toast('プロフィール画像を変更しました！');
   await loadAvatar();
