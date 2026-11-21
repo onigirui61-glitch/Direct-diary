@@ -228,7 +228,127 @@ async function logout(){
 function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(name+'View').classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='home')renderFeed()}
 function toggleRecipient(){const v=document.getElementById('entryVisibility').value;const w=document.getElementById('recipientWrap');w.classList.toggle('hidden',v==='friends'||v==='private');document.getElementById('recipientLabel').textContent=v==='direct'?'送る友達':'公開するグループ';document.getElementById('recipient').innerHTML=v==='direct'?'<option>あおい</option><option>ゆう</option>':'<option>放課後グループ</option>'}
 function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
-function publishEntry(){const body=document.getElementById('entryBody').value.trim();if(!body){toast('日記の本文を入力してください');return}const v=document.getElementById('entryVisibility').value;const labels={friends:'友達全体',direct:'個人宛て：'+document.getElementById('recipient').value,group:'グループ：'+document.getElementById('recipient').value,private:'自分だけ'};const arr=getEntries();arr.unshift({id:'p'+Date.now(),name:currentUser,date:'たった今',visibility:labels[v],title:document.getElementById('entryTitle').value.trim(),body,photo:photoData,likes:0,liked:false,comments:[]});try{saveEntries(arr)}catch(e){toast('保存できませんでした。写真のサイズを小さくしてください');return}document.getElementById('entryTitle').value='';document.getElementById('entryBody').value='';document.getElementById('entryPhoto').value='';document.getElementById('photoPreview').classList.add('hidden');photoData='';document.getElementById('entryVisibility').value='friends';toggleRecipient();toast('日記を保存しました');showView('home')}
+
+async function publishEntry(){
+  const body=document.getElementById('entryBody').value.trim();
+  const title=document.getElementById('entryTitle').value.trim();
+
+  if(!body){
+    toast('日記の本文を入力してください');
+    return;
+  }
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログイン状態を確認できませんでした');
+    return;
+  }
+
+  const {error}=await supabaseClient
+    .from('diary_posts')
+    .insert({
+      user_id:user.id,
+      title:title,
+      content:body
+    });
+
+  if(error){
+    toast('保存エラー：'+error.message);
+    return;
+  }
+
+  document.getElementById('entryTitle').value='';
+  document.getElementById('entryBody').value='';
+  document.getElementById('entryPhoto').value='';
+  document.getElementById('photoPreview').classList.add('hidden');
+  photoData='';
+
+  toast('日記を保存しました');
+  await 
+async function publishEntry(){
+  const body=document.getElementById('entryBody').value.trim();
+  const title=document.getElementById('entryTitle').value.trim();
+
+  if(!body){
+    toast('日記の本文を入力してください');
+    return;
+  }
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログイン状態を確認できませんでした');
+    return;
+  }
+
+  const {error}=await supabaseClient
+    .from('diary_posts')
+    .insert({
+      user_id:user.id,
+      title:title,
+      content:body
+    });
+
+  if(error){
+    toast('保存エラー：'+error.message);
+    return;
+  }
+
+  document.getElementById('entryTitle').value='';
+  document.getElementById('entryBody').value='';
+  document.getElementById('entryPhoto').value='';
+  document.getElementById('photoPreview').classList.add('hidden');
+  photoData='';
+
+  toast('日記を保存しました');
+  await 
+async function renderFeed(){
+  const feed=document.getElementById('feed');
+  feed.innerHTML='<div class="paper-card empty">日記を読み込んでいます...</div>';
+
+  const {data,error}=await supabaseClient
+    .from('diary_posts')
+    .select('id,title,content,created_at')
+    .order('created_at',{ascending:false});
+
+  if(error){
+    feed.innerHTML='<div class="paper-card empty">日記を読み込めませんでした。</div>';
+    toast('読み込みエラー：'+error.message);
+    return;
+  }
+
+  const all=data||[];
+  document.getElementById('postCount').textContent=all.length+' ENTRIES';
+
+  if(!all.length){
+    feed.innerHTML='<div class="paper-card empty">まだ日記がありません。<br>最初の日記を書いてみましょう。</div>';
+    return;
+  }
+
+  feed.innerHTML=all.map(p=>{
+    const date=new Date(p.created_at).toLocaleString('ja-JP');
+    return `<article class="paper-card">
+      <div class="post-top">
+        <div class="avatar">${esc(currentUser.slice(0,1))}</div>
+        <div>
+          <div class="post-name">${esc(currentUser)}</div>
+          <div class="post-date">${esc(date)}</div>
+        </div>
+        <span class="visibility">自分だけ</span>
+      </div>
+      ${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}
+      <div class="post-text">${esc(p.content)}</div>
+    </article>`;
+  }).join('');
+}
+
+  showView('home');
+}
+
+  showView('home');
+}
+
 function renderFeed(){const all=[...getEntries(),...samples];document.getElementById('postCount').textContent=all.length+' ENTRIES';const feed=document.getElementById('feed');if(!all.length){feed.innerHTML='<div class="paper-card empty">まだ日記がありません。<br>最初の日記を書いてみましょう。</div>';return}feed.innerHTML=all.map(p=>`<article class="paper-card"><div class="post-top"><div class="avatar">${esc(p.name.slice(0,1))}</div><div><div class="post-name">${esc(p.name)}</div><div class="post-date">${esc(p.date)}</div></div><span class="visibility">${esc(p.visibility)}</span></div>${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}<div class="post-text">${esc(p.body)}</div>${p.photo?`<img class="post-photo" src="${p.photo}" alt="日記の写真">`:''}<div class="post-actions"><button class="action ${p.liked?'liked':''}" onclick="likePost('${p.id}')">♡ ${p.likes||0} いいね</button><button class="action" onclick="toggleComments('${p.id}')">▢ コメント ${(p.comments||[]).length}</button></div><div id="comments-${p.id}" class="comments ${p.showComments?'':'hidden'}">${(p.comments||[]).map(c=>`<div class="comment"><b>${esc(c.name)}：</b>${esc(c.text)}</div>`).join('')}<div class="comment-form"><input id="comment-${p.id}" placeholder="コメントを書く"><button onclick="addComment('${p.id}')">送信</button></div></div></article>`).join('')}
 function findPost(id){let arr=getEntries();let i=arr.findIndex(p=>p.id===id);if(i>=0)return {p:arr[i],arr,i,local:true};return {p:samples.find(p=>p.id===id),local:false}}
 function likePost(id){const x=findPost(id);if(!x.p)return;if(x.local){x.p.liked=!x.p.liked;x.p.likes=Math.max(0,(x.p.likes||0)+(x.p.liked?1:-1));x.arr[x.i]=x.p;saveEntries(x.arr)}else{x.p.liked=!x.p.liked;x.p.likes=Math.max(0,x.p.likes+(x.p.liked?1:-1))}renderFeed()}
