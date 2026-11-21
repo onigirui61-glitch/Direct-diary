@@ -331,18 +331,17 @@ async function publishEntry(){
   let recipientId=null;
 
   if(visibility==='direct'){
-    const {data:target,error:targetError}=await supabaseClient
-      .from('profiles')
-      .select('id')
-      .eq('username',recipient)
-      .maybeSingle();
-
-    if(targetError || !target){
-      toast('公開先の友達が見つかりません');
+    if(!recipient){
+      toast('公開する友達を選択してください');
       return;
     }
 
-    recipientId=target.id;
+    recipientId=recipient;
+  }
+
+  if(visibility==='group'){
+    toast('グループ公開はまだ準備中です');
+    return;
   }
 
   if(!body){
