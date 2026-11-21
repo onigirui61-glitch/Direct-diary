@@ -825,6 +825,20 @@ async function renderFeed(){
   (profiles||[]).forEach(p=>{
     profileMap[p.id]=p;
   });
+    // グループ名を取得
+  const {data:groups,error:groupsError}=await supabaseClient
+    .from('diary_groups')
+    .select('id,name');
+
+  if(groupsError){
+    toast('グループ名を取得できませんでした');
+    return;
+  }
+
+  const groupMap={};
+  (groups||[]).forEach(g=>{
+    groupMap[g.id]=g.name;
+  });
   const {data:likes,error:likesError}=await supabaseClient
     .from('diary_likes')
     .select('post_id,user_id');
