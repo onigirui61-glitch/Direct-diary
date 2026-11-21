@@ -203,7 +203,10 @@ async function login(){
     .eq('id',data.user.id)
     .single();
 
-  if(profileError){toast('プロフィールを取得できませんでした');return;}
+  if(profileError){
+  toast('取得エラー：'+profileError.message+' / '+profileError.code);
+  return;
+}
 
   currentUser=profile.username;
   document.getElementById('loginScreen').classList.add('hidden');
