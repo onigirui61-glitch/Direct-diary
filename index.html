@@ -532,8 +532,8 @@ async function renderFriendList(){
     return;
   }
 
-  list.innerHTML=profiles.map(p=>`
-    <div class="friend">
+    list.innerHTML=profiles.map(p=>`
+    <div class="friend" onclick="openFriendProfile('${p.id}')" style="cursor:pointer">
       <div class="avatar">${esc(p.display_name.slice(0,1))}</div>
       <div class="friend-info">
         <b>${esc(p.display_name)}</b>
@@ -543,7 +543,27 @@ async function renderFriendList(){
     </div>
   `).join('');
 }
+async function openFriendProfile(id){
+  const {data:profile,error}=await supabaseClient
+    .from('profiles')
+    .select('username,display_name')
+    .eq('id',id)
+    .single();
 
+  if(error || !profile){
+    toast('プロフィールを取得できませんでした');
+    return;
+  }
+
+  document.getElementById('friendProfileName').textContent=profile.display_name;
+  document.getElementById('friendProfileId').textContent='@'+profile.username;
+  document.getElementById('friendProfile').classList.remove('hidden');
+  document.getElementById('friendProfile').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function closeFriendProfile(){
+  document.getElementById('friendProfile').classList.add('hidden');
+}
 async function searchFriend(){
   const q=document.getElementById('friendSearch').value.trim();
   const r=document.getElementById('friendSearchResult');
