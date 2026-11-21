@@ -513,11 +513,6 @@ async function renderFriendList(){
     list.innerHTML='<div class="empty">友達はまだいません。</div>';
     return;
   }
-  <div class="paper-card hidden" id="friendProfile">
-    <h2 id="friendProfileName"></h2>
-    <p id="friendProfileId" class="hint"></p>
-    <button class="secondary" onclick="closeFriendProfile()">閉じる</button>
-  </div>
 
 
   const ids=follows.map(f=>f.following_id);
