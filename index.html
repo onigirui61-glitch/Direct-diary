@@ -1408,6 +1408,32 @@ async function uploadAvatar(){
   await loadAvatar();
 }
 
+async function loadAvatar(){
+  const {data:{user}} = await supabaseClient.auth.getUser();
+
+  if(!user) return;
+
+  const {data,error} = await supabaseClient
+    .from('profiles')
+    .select('avatar_url')
+    .eq('id',user.id)
+    .single();
+
+  if(error) return;
+
+  const image = document.getElementById('profileAvatarImage');
+  const fallback = document.getElementById('profileAvatar');
+
+  if(data.avatar_url){
+    image.src = data.avatar_url;
+    image.classList.remove('hidden');
+    fallback.classList.add('hidden');
+  }else{
+    image.classList.add('hidden');
+    fallback.classList.remove('hidden');
+  }
+}
+
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
 </script>
