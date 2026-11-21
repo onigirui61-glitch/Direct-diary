@@ -99,20 +99,35 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
     <p class="hint">※試作品では投稿内容はこのブラウザ内に保存されます。他の人の端末には共有されません。</p>
   </div>
 </section>
+
 <section id="friendsView" class="view">
-  <div class="eyebrow">YOUR CIRCLE</div><h1>友達</h1><p class="sub">日々を共有したい人たち。</p>
-  <div class="paper-card"><label>ユーザーIDで検索（デモ）</label><div class="row"><input id="friendSearch" placeholder="友達のID"><button class="primary" style="margin:0" onclick="searchFriend()">検索</button></div><div id="friendSearchResult"></div></div>
-  <div class="section-head"><h2>友達リスト</h2><span>FRIENDS</span></div>
-  <div class="paper-card" id="friendList">
-    <div class="paper-card" id="friendList">
-  <div class="empty">友達を読み込んでいます...</div>
-</div><div class="avatar">あ</div><div class="friend-info"><b>あおい</b><small>@aoi_days ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
-<div class="paper-card" id="friendList">
-  <div class="empty">友達を読み込んでいます...</div>
-</div><div class="avatar">ゆ</div><div class="friend-info"><b>ゆう</b><small>@yuu_note ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
+  <div class="eyebrow">YOUR CIRCLE</div>
+  <h1>友達</h1>
+  <p class="sub">日々を共有したい人たち。</p>
+
+  <div class="paper-card">
+    <label>ユーザーIDで検索</label>
+    <div class="row">
+      <input id="friendSearch" placeholder="友達のID">
+      <button class="primary" style="margin:0" onclick="searchFriend()">検索</button>
+    </div>
+    <div id="friendSearchResult"></div>
   </div>
-  <div class="notice">友達検索・フォロー申請は画面イメージです。実際のユーザー間通信は次の開発段階で実装します。</div>
+
+  <div class="section-head">
+    <h2>友達リスト</h2>
+    <span>FRIENDS</span>
+  </div>
+
+  <div class="paper-card" id="friendList">
+    <div class="empty">友達はまだいません。</div>
+  </div>
+
+  <div class="notice">
+    フォローしたユーザーがここに表示されます。
+  </div>
 </section>
+
 <section id="groupsView" class="view">
   <div class="eyebrow">SHARED PAGES</div><h1>グループ</h1><p class="sub">仲の良い友達と、小さな日記帳を共有しよう。</p>
   <div class="paper-card"><div class="friend"><div class="avatar">☕</div><div class="friend-info"><b>放課後グループ</b><small>メンバー 4人 ・ 日記を共有中</small></div><span class="visibility">参加中</span></div><p class="hint">グループの日記やメンバー管理は、次の開発段階で実装予定です。</p><button class="secondary" onclick="toast('グループ作成機能は次の開発段階で追加します')">＋ グループを作成</button></div>
