@@ -305,9 +305,13 @@ async function login(){
   currentUser=profile.username;
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  
   setupUser();
   document.getElementById('profileName').textContent=profile.display_name;
+  document.getElementById('profileId').textContent='@'+profile.username;
+  await loadAvatar();
   renderFeed();
+
 }
 function setupUser(){const initial=currentUser.slice(0,1).toUpperCase();document.getElementById('headerAvatar').textContent=initial;document.getElementById('profileAvatar').textContent=initial;document.getElementById('profileName').textContent=currentUser;document.getElementById('profileId').textContent='@'+currentUser;const d=new Date();document.getElementById('todayLabel').textContent=d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).toUpperCase()}
 async function logout(){
