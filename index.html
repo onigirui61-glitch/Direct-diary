@@ -94,7 +94,12 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
     <label>本文</label><textarea id="entryBody" placeholder="今日はどんな一日だった？"></textarea>
     <label>写真</label><label class="file-label">＋ 写真を選ぶ<input id="entryPhoto" type="file" accept="image/*" onchange="previewPhoto(event)"></label><img id="photoPreview" class="preview hidden">
     <label>公開範囲</label><select id="entryVisibility" onchange="toggleRecipient()"><option value="friends">友達全体</option><option value="direct">特定の友達</option><option value="group">グループ</option><option value="private">自分だけ</option></select>
-    <div id="recipientWrap" class="hidden"><label id="recipientLabel">公開先</label><select id="recipient"><option value="あおい">あおい</option><option value="ゆう">ゆう</option><option value="放課後グループ">放課後グループ</option></select></div>
+    <div id="recipientWrap" class="hidden"><label id="recipientLabel">公開先</label>
+      
+<select id="recipient">
+  <option value="">友達を選択してください</option>
+</select>
+    </div>
     <button class="primary" style="width:100%" onclick="publishEntry()">日記を投稿する</button>
     <p class="hint">※試作品では投稿内容はこのブラウザ内に保存されます。他の人の端末には共有されません。</p>
   </div>
