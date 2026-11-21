@@ -230,14 +230,80 @@ function toggleRecipient(){const v=document.getElementById('entryVisibility').va
 function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
 
 
+
 async function publishEntry(){
   const body=document.getElementById('entryBody').value.trim();
   const title=document.getElementById('entryTitle').value.trim();
+  const file=document.getElementById('entryPhoto').files[0];
 
   if(!body){
     toast('日記の本文を入力してください');
     return;
   }
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログイン状態を確認できませんでした');
+    return;
+  }
+
+  let photoPath=null;
+
+  if(file){
+    if(file.size>5242880){
+      toast('写真は5MB以下にしてください');
+      return;
+    }
+
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){
+      toast('JPEG・PNG・WebPの写真を選んでください');
+      return;
+    }
+
+    const extension=file.type==='image/jpeg'?'jpg':file.type==='image/png'?'png':'webp';
+    const filePath=user.id+'/'+crypto.randomUUID()+'.'+extension;
+
+    const {error:uploadError}=await supabaseClient.storage
+      .from('diary-photos')
+      .upload(filePath,file);
+
+    if(uploadError){
+      toast('写真の保存エラー：'+uploadError.message);
+      return;
+    }
+
+    photoPath=filePath;
+  }
+
+  const {error}=await supabaseClient
+    .from('diary_posts')
+    .insert({
+      user_id:user.id,
+      title:title,
+      content:body,
+      photo_path:photoPath
+    });
+
+  if(error){
+    if(photoPath){
+      await supabaseClient.storage.from('diary-photos').remove([photoPath]);
+    }
+    toast('日記の保存エラー：'+error.message);
+    return;
+  }
+
+  document.getElementById('entryTitle').value='';
+  document.getElementById('entryBody').value='';
+  document.getElementById('entryPhoto').value='';
+  document.getElementById('photoPreview').classList.add('hidden');
+  document.getElementById('photoPreview').removeAttribute('src');
+  photoData='';
+
+  toast('日記と写真を保存しました');
+  showView('home');
+}
+
 
   const {data:{user},error:userError}=await supabaseClient.auth.getUser();
 
