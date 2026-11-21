@@ -693,10 +693,16 @@ async function publishEntry(){
     }
   }
 
-  if(visibility==='group'){
-    toast('グループ公開はまだ準備中です');
+let groupId=null;
+
+if(visibility==='group'){
+  groupId=document.getElementById('groupRecipient')?.value;
+
+  if(!groupId){
+    toast('公開するグループを選択してください');
     return;
   }
+}
 
   if(!body){
     toast('日記の本文を入力してください');
