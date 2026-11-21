@@ -952,7 +952,11 @@ async function renderFeed(){
 
     return `<article class="paper-card">
       <div class="post-top">
-        <div class="avatar">${esc(author.display_name.slice(0,1))}</div>
+        ${author.avatar_url
+  ? `<img src="${esc(author.avatar_url)}" alt="プロフィール画像"
+      class="avatar" style="object-fit:cover">`
+  : `<div class="avatar">${esc(author.display_name.slice(0,1))}</div>`
+}
         <div>
           <div class="post-name">${esc(author.display_name)} (@${esc(author.username)})</div>
           <div class="post-date">${esc(date)}</div>
