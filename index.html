@@ -636,7 +636,49 @@ async function deletePost(id){
 
 
 function findPost(id){let arr=getEntries();let i=arr.findIndex(p=>p.id===id);if(i>=0)return {p:arr[i],arr,i,local:true};return {p:samples.find(p=>p.id===id),local:false}}
-function likePost(id){const x=findPost(id);if(!x.p)return;if(x.local){x.p.liked=!x.p.liked;x.p.likes=Math.max(0,(x.p.likes||0)+(x.p.liked?1:-1));x.arr[x.i]=x.p;saveEntries(x.arr)}else{x.p.liked=!x.p.liked;x.p.likes=Math.max(0,x.p.likes+(x.p.liked?1:-1))}renderFeed()}
+async function likePost(id){
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログインしてください');
+    return;
+  }
+
+  const {data:existing,error:readError}=await supabaseClient
+    .from('diary_likes')
+    .select('id')
+    .eq('post_id',id)
+    .eq('user_id',user.id)
+    .maybeSingle();
+
+  if(readError){
+    toast('いいね状態を確認できませんでした');
+    return;
+  }
+
+  let result;
+
+  if(existing){
+    result=await supabaseClient
+      .from('diary_likes')
+      .delete()
+      .eq('id',existing.id);
+  }else{
+    result=await supabaseClient
+      .from('diary_likes')
+      .insert({
+        post_id:id,
+        user_id:user.id
+      });
+  }
+
+  if(result.error){
+    toast('いいねの保存に失敗しました');
+    return;
+  }
+
+  await renderFeed();
+}
 function toggleComments(id){const el=document.getElementById('comments-'+id);el.classList.toggle('hidden')}
 function addComment(id){const input=document.getElementById('comment-'+id);const t=input.value.trim();if(!t)return;const x=findPost(id);if(!x.p)return;x.p.comments=x.p.comments||[];x.p.comments.push({name:currentUser,text:t});if(x.local){x.arr[x.i]=x.p;saveEntries(x.arr)}input.value='';renderFeed();document.getElementById('comments-'+id).classList.remove('hidden')}
 
