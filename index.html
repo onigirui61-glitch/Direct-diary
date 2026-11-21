@@ -145,7 +145,21 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
 
 <section id="groupsView" class="view">
   <div class="eyebrow">SHARED PAGES</div><h1>グループ</h1><p class="sub">仲の良い友達と、小さな日記帳を共有しよう。</p>
-  <div class="paper-card"><div class="friend"><div class="avatar">☕</div><div class="friend-info"><b>放課後グループ</b><small>メンバー 4人 ・ 日記を共有中</small></div><span class="visibility">参加中</span></div><p class="hint">グループの日記やメンバー管理は、次の開発段階で実装予定です。</p><button class="secondary" onclick="toast('グループ作成機能は次の開発段階で追加します')">＋ グループを作成</button></div>
+<div class="paper-card">
+  <h2 style="font:500 19px Georgia,serif">新しいグループ</h2>
+  <label>グループ名</label>
+  <input id="groupName" maxlength="40" placeholder="例：いつものメンバー">
+  <button class="primary" style="width:100%" onclick="createGroup()">＋ グループを作成</button>
+</div>
+
+<div class="section-head">
+  <h2>参加しているグループ</h2>
+  <span>YOUR GROUPS</span>
+</div>
+
+<div id="groupList">
+  <div class="paper-card empty">グループを読み込んでいます...</div>
+</div>
 </section>
 <section id="profileView" class="view">
   <div class="eyebrow">YOUR PROFILE</div><h1>プロフィール</h1><p class="sub">あなたらしいページに整えよう。</p>
