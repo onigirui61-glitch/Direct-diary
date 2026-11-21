@@ -39,15 +39,43 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
 </head>
 <body>
 <div id="loginScreen" class="login-wrap">
-  <div class="login-logo"><div class="brand">direct diary<small>YOUR DAYS, TOGETHER</small></div></div>
+  <div class="login-logo">
+    <div class="brand">direct diary<small>YOUR DAYS, TOGETHER</small></div>
+  </div>
+
   <div class="login-card">
-    <div class="eyebrow">WELCOME</div><h1 style="font-size:24px">毎日を、友達と。</h1>
+    <div class="eyebrow">WELCOME</div>
+    <h1 style="font-size:24px">毎日を、友達と。</h1>
     <p class="sub">日々の小さな出来事を、日記にして届けよう。</p>
-    <div class="notice">これは操作確認用の試作品です。入力したパスワードは認証されず、アカウント情報として保存されません。</div>
-    <label>ユーザーID</label><input id="loginId" placeholder="例：haru123" autocomplete="username">
-    <label>パスワード（デモ用）</label><input id="loginPass" type="password" placeholder="任意の文字列" autocomplete="current-password">
-    <button class="primary" style="width:100%" onclick="login()">ログイン / はじめる</button>
-    <p class="hint">試作品のため、任意のIDとパスワードで入れます。入力したIDは表示名として使用します。</p>
+
+    <div id="loginFields">
+      <label>メールアドレス</label>
+      <input id="loginEmail" type="email" placeholder="メールアドレス">
+
+      <label>パスワード</label>
+      <input id="loginPass" type="password" placeholder="パスワード">
+
+      <button class="primary" style="width:100%" onclick="login()">ログイン</button>
+      <p class="hint">アカウントをお持ちでない方は、新規登録してください。</p>
+      <button class="secondary" style="width:100%" onclick="switchAuthMode('register')">新規登録はこちら</button>
+    </div>
+
+    <div id="registerFields" class="hidden">
+      <label>メールアドレス</label>
+      <input id="registerEmail" type="email" placeholder="メールアドレス">
+
+      <label>ユーザーID</label>
+      <input id="registerUsername" placeholder="例：haru123">
+
+      <label>表示名</label>
+      <input id="registerDisplayName" placeholder="例：はる">
+
+      <label>パスワード（8文字以上）</label>
+      <input id="registerPass" type="password" placeholder="パスワード">
+
+      <button class="primary" style="width:100%" onclick="register()">アカウントを作成</button>
+      <button class="secondary" style="width:100%;margin-top:10px" onclick="switchAuthMode('login')">ログインに戻る</button>
+    </div>
   </div>
 </div>
 <div id="app" class="app hidden">
@@ -113,9 +141,86 @@ const samples=[
 ];
 function getEntries(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
 function saveEntries(a){localStorage.setItem(KEY,JSON.stringify(a))}
-function login(){const id=document.getElementById('loginId').value.trim();const pass=document.getElementById('loginPass').value;if(!id||!pass){toast('ユーザーIDとパスワードを入力してください');return}currentUser=id;document.getElementById('loginScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');setupUser();renderFeed()}
+function switchAuthMode(mode){
+  document.getElementById('loginFields').classList.toggle('hidden',mode!=='login');
+  document.getElementById('registerFields').classList.toggle('hidden',mode!=='register');
+}
+
+async function register(){
+  const email=document.getElementById('registerEmail').value.trim();
+  const username=document.getElementById('registerUsername').value.trim();
+  const displayName=document.getElementById('registerDisplayName').value.trim();
+  const password=document.getElementById('registerPass').value;
+
+  if(!email||!username||!displayName||!password){
+    toast('すべての項目を入力してください');return;
+  }
+  if(password.length<8){
+    toast('パスワードは8文字以上にしてください');return;
+  }
+  if(!/^[a-zA-Z0-9_]{3,20}$/.test(username)){
+    toast('ユーザーIDは半角英数字と_で3〜20文字にしてください');return;
+  }
+
+  const {data,error}=await supabaseClient.auth.signUp({
+    email,
+    password,
+    options:{
+      data:{username,display_name:displayName}
+    }
+  });
+
+  if(error){toast('登録できませんでした：'+error.message);return;}
+
+  if(data.session){
+    currentUser=username;
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    setupUser();renderFeed();
+  }else{
+    toast('確認メールを送信しました。メールを確認してください。');
+    switchAuthMode('login');
+  }
+}
+
+async function login(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPass').value;
+
+  if(!email||!password){
+    toast('メールアドレスとパスワードを入力してください');return;
+  }
+
+  const {data,error}=await supabaseClient.auth.signInWithPassword({
+    email,password
+  });
+
+  if(error){toast('ログインできませんでした：'+error.message);return;}
+
+  const {data:profile,error:profileError}=await supabaseClient
+    .from('profiles')
+    .select('username,display_name')
+    .eq('id',data.user.id)
+    .single();
+
+  if(profileError){toast('プロフィールを取得できませんでした');return;}
+
+  currentUser=profile.username;
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  setupUser();
+  document.getElementById('profileName').textContent=profile.display_name;
+  renderFeed();
+}
 function setupUser(){const initial=currentUser.slice(0,1).toUpperCase();document.getElementById('headerAvatar').textContent=initial;document.getElementById('profileAvatar').textContent=initial;document.getElementById('profileName').textContent=currentUser;document.getElementById('profileId').textContent='@'+currentUser;const d=new Date();document.getElementById('todayLabel').textContent=d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).toUpperCase()}
-function logout(){document.getElementById('app').classList.add('hidden');document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('loginPass').value=''}
+async function logout(){
+  const {error}=await supabaseClient.auth.signOut();
+  if(error){toast('ログアウトできませんでした');return;}
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginPass').value='';
+  switchAuthMode('login');
+}
 function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(name+'View').classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='home')renderFeed()}
 function toggleRecipient(){const v=document.getElementById('entryVisibility').value;const w=document.getElementById('recipientWrap');w.classList.toggle('hidden',v==='friends'||v==='private');document.getElementById('recipientLabel').textContent=v==='direct'?'送る友達':'公開するグループ';document.getElementById('recipient').innerHTML=v==='direct'?'<option>あおい</option><option>ゆう</option>':'<option>放課後グループ</option>'}
 function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
