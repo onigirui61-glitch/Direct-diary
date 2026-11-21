@@ -284,7 +284,119 @@ function showView(name){
   if(name==='friends')renderFriendList();
   if(name==='groups')renderGroups();
 }
+async function createGroup(){
+  const input=document.getElementById('groupName');
+  const name=input.value.trim();
 
+  if(!name){
+    toast('グループ名を入力してください');
+    return;
+  }
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログインしてください');
+    return;
+  }
+
+  // グループを作成
+  const {data:group,error:groupError}=await supabaseClient
+    .from('diary_groups')
+    .insert({
+      name:name,
+      owner_id:user.id
+    })
+    .select('id')
+    .single();
+
+  if(groupError){
+    toast('グループ作成エラー：'+groupError.message);
+    return;
+  }
+
+  // 作成した本人をメンバーに追加
+  const {error:memberError}=await supabaseClient
+    .from('diary_group_members')
+    .insert({
+      group_id:group.id,
+      user_id:user.id
+    });
+
+  if(memberError){
+    await supabaseClient
+      .from('diary_groups')
+      .delete()
+      .eq('id',group.id);
+
+    toast('メンバー登録エラー：'+memberError.message);
+    return;
+  }
+
+  input.value='';
+  toast('グループを作成しました！');
+  await renderGroups();
+}
+
+
+async function renderGroups(){
+  const list=document.getElementById('groupList');
+
+  list.innerHTML='<div class="paper-card empty">グループを読み込んでいます...</div>';
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    list.innerHTML='<div class="paper-card empty">ログインしてください。</div>';
+    return;
+  }
+
+  const {data:groups,error:groupError}=await supabaseClient
+    .from('diary_groups')
+    .select('id,name,owner_id,created_at')
+    .order('created_at',{ascending:false});
+
+  if(groupError){
+    list.innerHTML='<div class="paper-card empty">グループを読み込めませんでした。</div>';
+    toast('読み込みエラー：'+groupError.message);
+    return;
+  }
+
+  if(!groups || groups.length===0){
+    list.innerHTML='<div class="paper-card empty">まだグループがありません。<br>最初のグループを作ってみましょう。</div>';
+    return;
+  }
+
+  const groupIds=groups.map(g=>g.id);
+
+  const {data:members,error:memberError}=await supabaseClient
+    .from('diary_group_members')
+    .select('group_id,user_id')
+    .in('group_id',groupIds);
+
+  if(memberError){
+    toast('メンバー情報を読み込めませんでした：'+memberError.message);
+    return;
+  }
+
+  list.innerHTML=groups.map(g=>{
+    const memberCount=(members||[]).filter(m=>m.group_id===g.id).length;
+    const isOwner=g.owner_id===user.id;
+
+    return `
+      <div class="paper-card">
+        <div class="friend">
+          <div class="avatar">▤</div>
+          <div class="friend-info">
+            <b>${esc(g.name)}</b>
+            <small>メンバー ${memberCount}人</small>
+          </div>
+          <span class="visibility">${isOwner?'作成者':'参加中'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 async function toggleRecipient(){
   const v=document.getElementById('entryVisibility').value;
   const w=document.getElementById('recipientWrap');
