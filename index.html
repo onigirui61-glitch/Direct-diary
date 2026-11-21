@@ -414,6 +414,128 @@ async function renderGroups(){
     `;
   }).join('');
 }
+  let selectedGroupId=null;
+
+async function openGroupMembers(groupId){
+  selectedGroupId=groupId;
+
+  const panel=document.getElementById('groupMemberPanel');
+  const choices=document.getElementById('groupMemberChoices');
+
+  panel.classList.remove('hidden');
+  choices.innerHTML='<p class="hint">友達を読み込んでいます...</p>';
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    choices.innerHTML='<p class="hint">ログインしてください。</p>';
+    return;
+  }
+
+  // 自分がフォローしている友達を取得
+  const {data:follows,error:followError}=await supabaseClient
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id',user.id);
+
+  if(followError){
+    choices.innerHTML='<p class="hint">友達を読み込めませんでした。</p>';
+    return;
+  }
+
+  if(!follows || follows.length===0){
+    choices.innerHTML='<p class="hint">フォロー中の友達がいません。</p>';
+    return;
+  }
+
+  const ids=follows.map(f=>f.following_id);
+
+  const {data:profiles,error:profileError}=await supabaseClient
+    .from('profiles')
+    .select('id,username,display_name')
+    .in('id',ids);
+
+  if(profileError){
+    choices.innerHTML='<p class="hint">プロフィールを読み込めませんでした。</p>';
+    return;
+  }
+
+  // すでに参加している人を取得
+  const {data:members,error:memberError}=await supabaseClient
+    .from('diary_group_members')
+    .select('user_id')
+    .eq('group_id',groupId);
+
+  if(memberError){
+    choices.innerHTML='<p class="hint">メンバー情報を読み込めませんでした。</p>';
+    return;
+  }
+
+  const memberIds=(members||[]).map(m=>m.user_id);
+
+  const available=(profiles||[]).filter(p=>!memberIds.includes(p.id));
+
+  if(available.length===0){
+    choices.innerHTML='<p class="hint">追加できる友達はいません。</p>';
+    return;
+  }
+
+  choices.innerHTML=available.map(p=>`
+    <label style="display:flex;align-items:center;gap:9px;padding:10px 4px;margin:0;border-bottom:1px solid #eee5d9">
+      <input type="checkbox" class="group-member-checkbox"
+        value="${p.id}" style="width:18px;height:18px;margin:0">
+      <span>${esc(p.display_name)} (@${esc(p.username)})</span>
+    </label>
+  `).join('');
+}
+
+
+function closeGroupMembers(){
+  document.getElementById('groupMemberPanel').classList.add('hidden');
+  selectedGroupId=null;
+}
+
+
+async function inviteGroupMembers(){
+  if(!selectedGroupId){
+    toast('グループを選択してください');
+    return;
+  }
+
+  const ids=Array.from(
+    document.querySelectorAll('.group-member-checkbox:checked')
+  ).map(input=>input.value);
+
+  if(ids.length===0){
+    toast('追加する友達を選択してください');
+    return;
+  }
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログインしてください');
+    return;
+  }
+
+  const rows=ids.map(id=>({
+    group_id:selectedGroupId,
+    user_id:id
+  }));
+
+  const {error}=await supabaseClient
+    .from('diary_group_members')
+    .insert(rows);
+
+  if(error){
+    toast('メンバー追加エラー：'+error.message);
+    return;
+  }
+
+  toast('友達をグループに追加しました！');
+  closeGroupMembers();
+  await renderGroups();
+}
 async function toggleRecipient(){
   const v=document.getElementById('entryVisibility').value;
   const w=document.getElementById('recipientWrap');
