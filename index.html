@@ -632,6 +632,7 @@ async function toggleFollow(targetId,isFollowing){
 
   toast(isFollowing?'フォローを解除しました':'フォローしました');
   searchFriend();
+await renderFriendList();
 }
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
