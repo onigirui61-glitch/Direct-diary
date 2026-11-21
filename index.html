@@ -922,7 +922,12 @@ async function renderFeed(){
       ${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}
       <div class="post-text">${esc(p.content)}</div>
       ${photoHTML}
-      <div class="hint">公開範囲：${esc(visibilityNames[p.visibility]||'不明')}</div>
+          <div class="hint">
+        公開範囲：${esc(visibilityNames[p.visibility]||'不明')}
+        ${p.visibility==='group' && p.group_id && groupMap[p.group_id]
+          ? ' ・ グループ：'+esc(groupMap[p.group_id])
+          : ''}
+      </div>
       ${actionsHTML}
     </article>`;
   }));
