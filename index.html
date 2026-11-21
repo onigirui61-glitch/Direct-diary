@@ -244,7 +244,17 @@ async function logout(){
   document.getElementById('loginPass').value='';
   switchAuthMode('login');
 }
-function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(name+'View').classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='home')renderFeed()}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(name+'View').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  if(name==='home')renderFeed();
+  if(name==='friends')renderFriendList();
+}
+
 function toggleRecipient(){const v=document.getElementById('entryVisibility').value;const w=document.getElementById('recipientWrap');w.classList.toggle('hidden',v==='friends'||v==='private');document.getElementById('recipientLabel').textContent=v==='direct'?'送る友達':'公開するグループ';document.getElementById('recipient').innerHTML=v==='direct'?'<option>あおい</option><option>ゆう</option>':'<option>放課後グループ</option>'}
 function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
 
