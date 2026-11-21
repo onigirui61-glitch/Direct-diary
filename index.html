@@ -1443,7 +1443,35 @@ async function loadAvatar(){
 }
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
+async function restoreLogin(){
+  const {data:{session},error}=await supabaseClient.auth.getSession();
+
+  if(error || !session?.user) return;
+
+  const {data:profile,error:profileError}=await supabaseClient
+    .from('profiles')
+    .select('username,display_name')
+    .eq('id',session.user.id)
+    .single();
+
+  if(profileError || !profile) return;
+
+  currentUser=profile.username;
+
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  setupUser();
+
+  document.getElementById('profileName').textContent=profile.display_name;
+  document.getElementById('profileId').textContent='@'+profile.username;
+
+  await loadAvatar();
+  await renderFeed();
+}
+
+restoreLogin();
+  let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
 </script>
 </body>
 </html>
