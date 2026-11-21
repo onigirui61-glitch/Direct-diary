@@ -172,11 +172,45 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
   </button>
 </div>
 </section>
+
 <section id="profileView" class="view">
-  <div class="eyebrow">YOUR PROFILE</div><h1>プロフィール</h1><p class="sub">あなたらしいページに整えよう。</p>
-  <div class="paper-card" style="text-align:center"><div class="avatar" style="width:66px;height:66px;margin:auto;font-size:24px" id="profileAvatar">D</div><h2 id="profileName" style="font:500 21px Georgia,serif;margin:12px 0 4px">diary user</h2><div id="profileId" class="hint">@diary_user</div><p class="hint">今日の記録を、未来の自分へ。</p><button class="secondary" onclick="logout()">ログアウト</button></div>
-  <div class="notice">アカウント登録・プロフィール編集は、認証機能を実装する段階で追加します。</div>
+  <div class="eyebrow">YOUR PROFILE</div>
+  <h1>プロフィール</h1>
+  <p class="sub">あなたらしいページに整えよう。</p>
+
+  <div class="paper-card" style="text-align:center">
+    <img id="profileAvatarImage" class="hidden"
+      style="width:100px;height:100px;border-radius:50%;object-fit:cover;margin:auto;border:1px solid #d9c8b2">
+
+    <div class="avatar"
+      style="width:100px;height:100px;margin:auto;font-size:30px"
+      id="profileAvatar">D</div>
+
+    <h2 id="profileName"
+      style="font:500 21px Georgia,serif;margin:12px 0 4px">
+      diary user
+    </h2>
+
+    <div id="profileId" class="hint">@diary_user</div>
+
+    <label class="file-label" style="margin:18px auto 8px">
+      ＋ プロフィール画像を選ぶ
+      <input id="avatarFile" type="file" accept="image/*">
+    </label>
+
+    <img id="avatarPreview" class="preview hidden"
+      style="width:130px;height:130px;object-fit:cover;border-radius:50%;margin:12px auto">
+
+    <button class="primary" style="width:100%;margin-bottom:12px"
+      onclick="uploadAvatar()">
+      画像を変更する
+    </button>
+
+    <p class="hint">今日の記録を、未来の自分へ。</p>
+    <button class="secondary" onclick="logout()">ログアウト</button>
+  </div>
 </section>
+
 </main>
 <nav class="bottom-nav">
 <button class="nav-btn active" data-view="home" onclick="showView('home')"><span class="ico">⌂</span>ホーム</button>
