@@ -125,6 +125,14 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
   <div class="paper-card" id="friendList">
     <div class="empty">友達はまだいません。</div>
   </div>
+  <div class="section-head">
+  <h2>フォローしてくれた人</h2>
+  <span>FOLLOWERS</span>
+</div>
+
+<div class="paper-card" id="followerList">
+  <div class="empty">読み込み待ち...</div>
+</div>
   <div class="paper-card hidden" id="friendProfile">
     <h2 id="friendProfileName"></h2>
     <p id="friendProfileId" class="hint"></p>
@@ -725,7 +733,7 @@ async function renderFriendList(){
     return;
   }
 
-    list.innerHTML=profiles.map(p=>`
+      list.innerHTML=profiles.map(p=>`
     <div class="friend" onclick="openFriendProfile('${p.id}')" style="cursor:pointer">
       <div class="avatar">${esc(p.display_name.slice(0,1))}</div>
       <div class="friend-info">
@@ -735,6 +743,67 @@ async function renderFriendList(){
       <span class="visibility">フォロー中</span>
     </div>
   `).join('');
+
+  const followerList=document.getElementById('followerList');
+
+  followerList.innerHTML='<div class="empty">読み込んでいます...</div>';
+
+  const {data:incoming,error:incomingError}=await supabaseClient
+    .from('follows')
+    .select('follower_id')
+    .eq('following_id',user.id);
+
+  if(incomingError){
+    followerList.innerHTML='<div class="empty">読み込めませんでした。</div>';
+    return;
+  }
+
+  if(!incoming || incoming.length===0){
+    followerList.innerHTML='<div class="empty">まだフォロワーはいません。</div>';
+    return;
+  }
+
+  const incomingIds=incoming.map(f=>f.follower_id);
+
+  const {data:incomingProfiles,error:incomingProfileError}=await supabaseClient
+    .from('profiles')
+    .select('id,username,display_name')
+    .in('id',incomingIds);
+
+  if(incomingProfileError){
+    toast('フォロワー情報を取得できませんでした');
+    return;
+  }
+
+  const {data:myFollows,error:myFollowsError}=await supabaseClient
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id',user.id);
+
+  if(myFollowsError){
+    toast('フォロー状態を取得できませんでした');
+    return;
+  }
+
+  const followingIds=(myFollows||[]).map(f=>f.following_id);
+
+  followerList.innerHTML=incomingProfiles.map(p=>{
+    const isFollowing=followingIds.includes(p.id);
+
+    return `
+      <div class="friend">
+        <div class="avatar">${esc(p.display_name.slice(0,1))}</div>
+        <div class="friend-info">
+          <b>${esc(p.display_name)}</b>
+          <small>@${esc(p.username)}</small>
+        </div>
+        <button class="secondary"
+          onclick="toggleFollow('${p.id}',${isFollowing})">
+          ${isFollowing?'フォロー解除':'フォローする'}
+        </button>
+      </div>
+    `;
+  }).join('');
 }
 async function openFriendProfile(id){
   const {data:profile,error}=await supabaseClient
