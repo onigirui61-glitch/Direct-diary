@@ -514,6 +514,12 @@ async function renderFriendList(){
     return;
   }
 
+<div class="paper-card hidden" id="friendProfile">
+  <h2 id="friendProfileName"></h2>
+  <p id="friendProfileId" class="hint"></p>
+  <button class="secondary" onclick="closeFriendProfile()">閉じる</button>
+</div>
+
   const ids=follows.map(f=>f.following_id);
 
   const {data:profiles,error:profileError}=await supabaseClient
