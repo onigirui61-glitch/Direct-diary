@@ -455,7 +455,101 @@ function findPost(id){let arr=getEntries();let i=arr.findIndex(p=>p.id===id);if(
 function likePost(id){const x=findPost(id);if(!x.p)return;if(x.local){x.p.liked=!x.p.liked;x.p.likes=Math.max(0,(x.p.likes||0)+(x.p.liked?1:-1));x.arr[x.i]=x.p;saveEntries(x.arr)}else{x.p.liked=!x.p.liked;x.p.likes=Math.max(0,x.p.likes+(x.p.liked?1:-1))}renderFeed()}
 function toggleComments(id){const el=document.getElementById('comments-'+id);el.classList.toggle('hidden')}
 function addComment(id){const input=document.getElementById('comment-'+id);const t=input.value.trim();if(!t)return;const x=findPost(id);if(!x.p)return;x.p.comments=x.p.comments||[];x.p.comments.push({name:currentUser,text:t});if(x.local){x.arr[x.i]=x.p;saveEntries(x.arr)}input.value='';renderFeed();document.getElementById('comments-'+id).classList.remove('hidden')}
-function searchFriend(){const q=document.getElementById('friendSearch').value.trim();const r=document.getElementById('friendSearchResult');if(!q){r.innerHTML='<p class="hint">IDを入力してください。</p>';return}r.innerHTML=`<div class="friend"><div class="avatar">${esc(q.slice(0,1))}</div><div class="friend-info"><b>${esc(q)}</b><small>@${esc(q)}</small></div><button class="secondary" onclick="toast('フォロー申請機能は次の段階で追加します')">フォロー</button></div>`}
+
+async function searchFriend(){
+  const q=document.getElementById('friendSearch').value.trim();
+  const r=document.getElementById('friendSearchResult');
+
+  if(!q){
+    r.innerHTML='<p class="hint">IDを入力してください。</p>';
+    return;
+  }
+
+  if(!/^[a-zA-Z0-9_]{3,20}$/.test(q)){
+    r.innerHTML='<p class="hint">ユーザーIDの形式が正しくありません。</p>';
+    return;
+  }
+
+  const {data:{user}}=await supabaseClient.auth.getUser();
+
+  if(!user){
+    toast('ログインしてください');
+    return;
+  }
+
+  const {data:profile,error}=await supabaseClient
+    .from('profiles')
+    .select('id,username,display_name')
+    .ilike('username',q)
+    .maybeSingle();
+
+  if(error){
+    toast('検索エラー：'+error.message);
+    return;
+  }
+
+  if(!profile){
+    r.innerHTML='<p class="hint">ユーザーが見つかりませんでした。</p>';
+    return;
+  }
+
+  if(profile.id===user.id){
+    r.innerHTML='<p class="hint">これはあなた自身のアカウントです。</p>';
+    return;
+  }
+
+  const {data:follow}=await supabaseClient
+    .from('follows')
+    .select('id')
+    .eq('follower_id',user.id)
+    .eq('following_id',profile.id)
+    .maybeSingle();
+
+  r.innerHTML=`
+    <div class="friend">
+      <div class="avatar">${esc(profile.display_name.slice(0,1))}</div>
+      <div class="friend-info">
+        <b>${esc(profile.display_name)}</b>
+        <small>@${esc(profile.username)}</small>
+      </div>
+      <button class="secondary"
+        onclick="toggleFollow('${profile.id}',${!!follow})">
+        ${follow?'フォロー解除':'フォロー'}
+      </button>
+    </div>`;
+}
+
+async function toggleFollow(targetId,isFollowing){
+  const {data:{user}}=await supabaseClient.auth.getUser();
+
+  if(!user)return;
+
+  let result;
+
+  if(isFollowing){
+    result=await supabaseClient
+      .from('follows')
+      .delete()
+      .eq('follower_id',user.id)
+      .eq('following_id',targetId);
+  }else{
+    result=await supabaseClient
+      .from('follows')
+      .insert({
+        follower_id:user.id,
+        following_id:targetId
+      });
+  }
+
+  if(result.error){
+    toast('操作エラー：'+result.error.message);
+    return;
+  }
+
+  toast(isFollowing?'フォローを解除しました':'フォローしました');
+  searchFriend();
+}
+
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
 </script>
