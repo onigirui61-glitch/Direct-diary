@@ -360,6 +360,10 @@ async function renderFeed(){
       ${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}
       <div class="post-text">${esc(p.content)}</div>
       ${photoHTML}
+      <div class="post-actions">
+        <button class="action" onclick="editPost('${p.id}')">✎ 編集</button>
+        <button class="action" onclick="deletePost('${p.id}')">削除</button>
+      </div>
     </article>`;
   }));
 
