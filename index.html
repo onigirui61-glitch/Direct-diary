@@ -839,6 +839,8 @@ async function renderFeed(){
   (groups||[]).forEach(g=>{
     groupMap[g.id]=g.name;
   });
+    console.log('取得したグループ一覧:',groups);
+  console.log('グループ名マップ:',groupMap);
   const {data:likes,error:likesError}=await supabaseClient
     .from('diary_likes')
     .select('post_id,user_id');
