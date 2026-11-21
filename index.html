@@ -1356,6 +1356,58 @@ document.getElementById('avatarFile').addEventListener('change', function(){
   preview.classList.remove('hidden');
 });
 
+async function uploadAvatar(){
+  const file = document.getElementById('avatarFile').files[0];
+
+  if(!file){
+    toast('先に画像を選んでね');
+    return;
+  }
+
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type) || file.size > 5242880){
+    toast('JPEG・PNG・WebPの5MB以下の画像を選んでね');
+    return;
+  }
+
+  const {data:{user},error:userError} = await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    toast('ログインし直してください');
+    return;
+  }
+
+  const ext = file.type === 'image/png' ? 'png' :
+              file.type === 'image/webp' ? 'webp' : 'jpg';
+
+  const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+
+  const {error:uploadError} = await supabaseClient.storage
+    .from('avatars')
+    .upload(path,file);
+
+  if(uploadError){
+    toast('画像の保存に失敗しました');
+    return;
+  }
+
+  const {data:{publicUrl}} = supabaseClient.storage
+    .from('avatars')
+    .getPublicUrl(path);
+
+  const {error:updateError} = await supabaseClient
+    .from('profiles')
+    .update({avatar_url:publicUrl})
+    .eq('id',user.id);
+
+  if(updateError){
+    toast('プロフィール画像の更新に失敗しました');
+    return;
+  }
+
+  toast('プロフィール画像を変更しました！');
+  await loadAvatar();
+}
+
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
 </script>
