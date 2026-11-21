@@ -264,7 +264,59 @@ function showView(name){
   if(name==='friends')renderFriendList();
 }
 
-function toggleRecipient(){const v=document.getElementById('entryVisibility').value;const w=document.getElementById('recipientWrap');w.classList.toggle('hidden',v==='friends'||v==='private');document.getElementById('recipientLabel').textContent=v==='direct'?'送る友達':'公開するグループ';document.getElementById('recipient').innerHTML=v==='direct'?'<option>あおい</option><option>ゆう</option>':'<option>放課後グループ</option>'}
+async function toggleRecipient(){
+  const v=document.getElementById('entryVisibility').value;
+  const w=document.getElementById('recipientWrap');
+  const select=document.getElementById('recipient');
+
+  w.classList.toggle('hidden',v==='friends'||v==='private');
+
+  if(v==='direct'){
+    document.getElementById('recipientLabel').textContent='送る友達';
+    select.innerHTML='<option value="">読み込み中...</option>';
+
+    const {data:{user}}=await supabaseClient.auth.getUser();
+
+    if(!user)return;
+
+    const {data:follows,error}=await supabaseClient
+      .from('follows')
+      .select('following_id')
+      .eq('follower_id',user.id);
+
+    if(error){
+      toast('友達を読み込めませんでした');
+      return;
+    }
+
+    if(!follows || follows.length===0){
+      select.innerHTML='<option value="">フォロー中の友達がいません</option>';
+      return;
+    }
+
+    const ids=follows.map(f=>f.following_id);
+
+    const {data:profiles,error:profileError}=await supabaseClient
+      .from('profiles')
+      .select('id,display_name,username')
+      .in('id',ids);
+
+    if(profileError){
+      toast('友達のプロフィールを読み込めませんでした');
+      return;
+    }
+
+    select.innerHTML='<option value="">友達を選択してください</option>';
+
+    profiles.forEach(p=>{
+      select.innerHTML+=`<option value="${p.id}">${esc(p.display_name)} (@${esc(p.username)})</option>`;
+    });
+
+  }else if(v==='group'){
+    document.getElementById('recipientLabel').textContent='公開するグループ';
+    select.innerHTML='<option value="">グループ公開は準備中です</option>';
+  }
+}
 function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
 
 
