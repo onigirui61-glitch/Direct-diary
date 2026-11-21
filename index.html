@@ -475,6 +475,60 @@ function likePost(id){const x=findPost(id);if(!x.p)return;if(x.local){x.p.liked=
 function toggleComments(id){const el=document.getElementById('comments-'+id);el.classList.toggle('hidden')}
 function addComment(id){const input=document.getElementById('comment-'+id);const t=input.value.trim();if(!t)return;const x=findPost(id);if(!x.p)return;x.p.comments=x.p.comments||[];x.p.comments.push({name:currentUser,text:t});if(x.local){x.arr[x.i]=x.p;saveEntries(x.arr)}input.value='';renderFeed();document.getElementById('comments-'+id).classList.remove('hidden')}
 
+  
+async function renderFriendList(){
+  const list=document.getElementById('friendList');
+
+  list.innerHTML='<div class="empty">友達を読み込んでいます...</div>';
+
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    list.innerHTML='<div class="empty">ログインしてください。</div>';
+    return;
+  }
+
+  const {data:follows,error:followError}=await supabaseClient
+    .from('follows')
+    .select('following_id')
+    .eq('follower_id',user.id);
+
+  if(followError){
+    list.innerHTML='<div class="empty">友達を読み込めませんでした。</div>';
+    toast('読み込みエラー：'+followError.message);
+    return;
+  }
+
+  if(!follows || follows.length===0){
+    list.innerHTML='<div class="empty">友達はまだいません。</div>';
+    return;
+  }
+
+  const ids=follows.map(f=>f.following_id);
+
+  const {data:profiles,error:profileError}=await supabaseClient
+    .from('profiles')
+    .select('id,username,display_name')
+    .in('id',ids);
+
+  if(profileError){
+    list.innerHTML='<div class="empty">プロフィールを読み込めませんでした。</div>';
+    toast('読み込みエラー：'+profileError.message);
+    return;
+  }
+
+  list.innerHTML=profiles.map(p=>`
+    <div class="friend">
+      <div class="avatar">${esc(p.display_name.slice(0,1))}</div>
+      <div class="friend-info">
+        <b>${esc(p.display_name)}</b>
+        <small>@${esc(p.username)}</small>
+      </div>
+      <span class="visibility">フォロー中</span>
+    </div>
+  `).join('');
+}
+
 async function searchFriend(){
   const q=document.getElementById('friendSearch').value.trim();
   const r=document.getElementById('friendSearchResult');
