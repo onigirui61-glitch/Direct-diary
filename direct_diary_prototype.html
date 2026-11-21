@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5efe4">
+<title>direct diary - prototype</title>
+<style>
+:root{--paper:#fbf8f1;--cream:#f2eadc;--ink:#403a32;--muted:#8a8175;--line:#e7ddce;--accent:#8c7357;--accent2:#b58b69;--white:#fffdf9;--rose:#c9877b}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{max-width:760px;margin:auto;min-height:100vh;padding-bottom:86px}
+header{position:sticky;top:0;z-index:5;background:rgba(251,248,241,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-family:Georgia,serif;font-size:25px;letter-spacing:.2px;color:#6e5944}.brand small{display:block;font:10px sans-serif;letter-spacing:2px;color:var(--muted);margin-top:2px}
+.avatar{width:38px;height:38px;border-radius:50%;background:#e7d8c4;display:grid;place-items:center;color:#725c45;font-weight:700;border:1px solid #d9c8b2}
+main{padding:20px 16px}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--accent2);font-weight:700}
+h1{font-family:Georgia,serif;font-weight:500;font-size:27px;margin:7px 0 5px} .sub{color:var(--muted);font-size:13px;line-height:1.7;margin:0 0 18px}
+.paper-card{background:var(--white);border:1px solid var(--line);border-radius:17px;padding:17px;margin-bottom:14px;box-shadow:0 4px 14px rgba(83,65,43,.035)}
+.welcome{background:linear-gradient(135deg,#f1e6d6,#f8f1e7);border:1px solid #e8dac7;border-radius:18px;padding:19px;margin-bottom:18px}
+.welcome p{margin:7px 0 0;color:#756754;font-size:13px;line-height:1.7}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 12px}.section-head h2{font:500 19px Georgia,serif;margin:0}.section-head span{font-size:11px;color:var(--muted)}
+.post-top{display:flex;align-items:center;gap:10px}.post-name{font-size:13px;font-weight:700}.post-date{font-size:11px;color:var(--muted);margin-top:3px}.visibility{margin-left:auto;font-size:10px;color:#8c7357;background:#f4eee5;padding:5px 8px;border-radius:20px}
+.post-text{font-size:14px;line-height:1.9;white-space:pre-wrap;margin:14px 0 10px}.post-photo{width:100%;max-height:330px;object-fit:cover;border-radius:12px;margin:4px 0 8px;background:#eee}
+.post-actions{display:flex;gap:16px;border-top:1px solid #f0e9df;padding-top:11px;margin-top:10px}.action{border:0;background:none;color:#81786d;font-size:12px;padding:3px 0}.action.liked{color:#bb6f69;font-weight:700}
+.comments{background:#faf6ef;border-radius:10px;padding:10px;margin-top:10px}.comment{font-size:12px;line-height:1.6;margin:5px 0}.comment b{color:#78624a}.comment-form{display:flex;gap:7px;margin-top:8px}.comment-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:20px;padding:9px 12px;background:white;font-size:12px}.comment-form button,.primary{background:var(--accent);color:white;border:0;border-radius:22px;padding:10px 16px;font-size:12px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:rgba(255,253,249,.96);border-top:1px solid var(--line);display:flex;justify-content:center;gap:0;padding:8px max(8px,calc((100% - 760px)/2)) calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}
+.nav-btn{flex:1;max-width:145px;background:none;border:0;color:#938879;font-size:10px;padding:5px 2px}.nav-btn .ico{display:block;font-size:20px;margin-bottom:3px}.nav-btn.active{color:#765e44;font-weight:700}
+.view{display:none}.view.active{display:block}
+label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#fffefa;color:var(--ink);outline:none}textarea{min-height:145px;resize:vertical;line-height:1.8}input:focus,textarea:focus,select:focus{border-color:#b99d7b}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}.hint{font-size:11px;color:var(--muted);line-height:1.6;margin-top:7px}.primary{padding:12px 18px;font-size:13px;margin-top:14px}.secondary{border:1px solid var(--line);background:#fffdf9;color:#786650;border-radius:20px;padding:9px 14px;font-size:12px}
+.empty{text-align:center;padding:32px 12px;color:var(--muted);font-size:13px;line-height:1.8}.friend{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid #f0e9df}.friend:last-child{border:0}.friend-info{flex:1}.friend-info b{font-size:13px}.friend-info small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.notice{font-size:11px;color:#8b6d4d;background:#f6eee2;padding:10px 12px;border-radius:10px;line-height:1.7;margin-bottom:14px}
+.login-wrap{max-width:420px;margin:35px auto;padding:0 18px}.login-logo{text-align:center;margin:20px 0 28px}.login-logo .brand{font-size:34px}.login-card{background:var(--white);padding:23px;border:1px solid var(--line);border-radius:18px}
+.hidden{display:none!important}.file-label{display:inline-block;border:1px dashed #cbb99f;border-radius:10px;padding:10px 13px;color:#806b50;font-size:12px;cursor:pointer}.file-label input{display:none}.preview{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-top:10px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#4d463d;color:white;padding:10px 16px;border-radius:22px;font-size:12px;z-index:20;box-shadow:0 4px 18px #0002}
+@media(min-width:650px){main{padding:28px 24px}.welcome{padding:23px}.paper-card{padding:20px}}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-wrap">
+  <div class="login-logo"><div class="brand">direct diary<small>YOUR DAYS, TOGETHER</small></div></div>
+  <div class="login-card">
+    <div class="eyebrow">WELCOME</div><h1 style="font-size:24px">毎日を、友達と。</h1>
+    <p class="sub">日々の小さな出来事を、日記にして届けよう。</p>
+    <div class="notice">これは操作確認用の試作品です。入力したパスワードは認証されず、アカウント情報として保存されません。</div>
+    <label>ユーザーID</label><input id="loginId" placeholder="例：haru123" autocomplete="username">
+    <label>パスワード（デモ用）</label><input id="loginPass" type="password" placeholder="任意の文字列" autocomplete="current-password">
+    <button class="primary" style="width:100%" onclick="login()">ログイン / はじめる</button>
+    <p class="hint">試作品のため、任意のIDとパスワードで入れます。入力したIDは表示名として使用します。</p>
+  </div>
+</div>
+<div id="app" class="app hidden">
+<header><div class="brand">direct diary<small>YOUR DAYS, TOGETHER</small></div><div class="avatar" id="headerAvatar">D</div></header>
+<main>
+<section id="homeView" class="view active">
+  <div class="eyebrow" id="todayLabel">TODAY</div><h1>今日のページ</h1><p class="sub">何気ない一日も、書き残せば大切な思い出。</p>
+  <div class="welcome"><div class="eyebrow">A LITTLE NOTE</div><div style="font:italic 20px Georgia,serif;margin-top:7px">Dear today,</div><p>今日あったこと、感じたこと。あなたの言葉で残してみよう。</p><button class="secondary" onclick="showView('write')">＋ 日記を書く</button></div>
+  <div class="section-head"><h2>友達の日記</h2><span id="postCount">LATEST ENTRIES</span></div>
+  <div id="feed"></div>
+</section>
+<section id="writeView" class="view">
+  <div class="eyebrow">NEW ENTRY</div><h1>日記を書く</h1><p class="sub">今日の気持ちを、自由に書いてみよう。</p>
+  <div class="paper-card">
+    <label>タイトル（任意）</label><input id="entryTitle" maxlength="70" placeholder="今日の小さなできごと">
+    <label>本文</label><textarea id="entryBody" placeholder="今日はどんな一日だった？"></textarea>
+    <label>写真</label><label class="file-label">＋ 写真を選ぶ<input id="entryPhoto" type="file" accept="image/*" onchange="previewPhoto(event)"></label><img id="photoPreview" class="preview hidden">
+    <label>公開範囲</label><select id="entryVisibility" onchange="toggleRecipient()"><option value="friends">友達全体</option><option value="direct">特定の友達</option><option value="group">グループ</option><option value="private">自分だけ</option></select>
+    <div id="recipientWrap" class="hidden"><label id="recipientLabel">公開先</label><select id="recipient"><option value="あおい">あおい</option><option value="ゆう">ゆう</option><option value="放課後グループ">放課後グループ</option></select></div>
+    <button class="primary" style="width:100%" onclick="publishEntry()">日記を投稿する</button>
+    <p class="hint">※試作品では投稿内容はこのブラウザ内に保存されます。他の人の端末には共有されません。</p>
+  </div>
+</section>
+<section id="friendsView" class="view">
+  <div class="eyebrow">YOUR CIRCLE</div><h1>友達</h1><p class="sub">日々を共有したい人たち。</p>
+  <div class="paper-card"><label>ユーザーIDで検索（デモ）</label><div class="row"><input id="friendSearch" placeholder="友達のID"><button class="primary" style="margin:0" onclick="searchFriend()">検索</button></div><div id="friendSearchResult"></div></div>
+  <div class="section-head"><h2>友達リスト</h2><span>FRIENDS</span></div>
+  <div class="paper-card" id="friendList">
+    <div class="friend"><div class="avatar">あ</div><div class="friend-info"><b>あおい</b><small>@aoi_days ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
+    <div class="friend"><div class="avatar">ゆ</div><div class="friend-info"><b>ゆう</b><small>@yuu_note ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
+  </div>
+  <div class="notice">友達検索・フォロー申請は画面イメージです。実際のユーザー間通信は次の開発段階で実装します。</div>
+</section>
+<section id="groupsView" class="view">
+  <div class="eyebrow">SHARED PAGES</div><h1>グループ</h1><p class="sub">仲の良い友達と、小さな日記帳を共有しよう。</p>
+  <div class="paper-card"><div class="friend"><div class="avatar">☕</div><div class="friend-info"><b>放課後グループ</b><small>メンバー 4人 ・ 日記を共有中</small></div><span class="visibility">参加中</span></div><p class="hint">グループの日記やメンバー管理は、次の開発段階で実装予定です。</p><button class="secondary" onclick="toast('グループ作成機能は次の開発段階で追加します')">＋ グループを作成</button></div>
+</section>
+<section id="profileView" class="view">
+  <div class="eyebrow">YOUR PROFILE</div><h1>プロフィール</h1><p class="sub">あなたらしいページに整えよう。</p>
+  <div class="paper-card" style="text-align:center"><div class="avatar" style="width:66px;height:66px;margin:auto;font-size:24px" id="profileAvatar">D</div><h2 id="profileName" style="font:500 21px Georgia,serif;margin:12px 0 4px">diary user</h2><div id="profileId" class="hint">@diary_user</div><p class="hint">今日の記録を、未来の自分へ。</p><button class="secondary" onclick="logout()">ログアウト</button></div>
+  <div class="notice">アカウント登録・プロフィール編集は、認証機能を実装する段階で追加します。</div>
+</section>
+</main>
+<nav class="bottom-nav">
+<button class="nav-btn active" data-view="home" onclick="showView('home')"><span class="ico">⌂</span>ホーム</button>
+<button class="nav-btn" data-view="write" onclick="showView('write')"><span class="ico">✎</span>日記を書く</button>
+<button class="nav-btn" data-view="friends" onclick="showView('friends')"><span class="ico">♡</span>友達</button>
+<button class="nav-btn" data-view="groups" onclick="showView('groups')"><span class="ico">▤</span>グループ</button>
+<button class="nav-btn" data-view="profile" onclick="showView('profile')"><span class="ico">○</span>マイページ</button>
+</nav>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script>
+const KEY='directDiaryPrototypeEntries';
+let currentUser='diary_user',photoData='';
+const samples=[
+{id:'s1',name:'あおい',date:'今日 09:12',visibility:'友達全体',title:'朝の散歩',body:'少し早起きして近所を散歩した。空気が気持ちよくて、いつもより一日が長く感じられそう。帰りに小さな花を見つけた。',photo:'',likes:3,liked:false,comments:[{name:'ゆう',text:'朝の空気っていいよね！'}]},
+{id:'s2',name:'ゆう',date:'昨日 21:40',visibility:'友達全体',title:'好きな時間',body:'帰り道に聴いた曲がすごくよかった。何でもない日だったけど、こういう瞬間を忘れたくないな。',photo:'',likes:5,liked:false,comments:[]}
+];
+function getEntries(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function saveEntries(a){localStorage.setItem(KEY,JSON.stringify(a))}
+function login(){const id=document.getElementById('loginId').value.trim();const pass=document.getElementById('loginPass').value;if(!id||!pass){toast('ユーザーIDとパスワードを入力してください');return}currentUser=id;document.getElementById('loginScreen').classList.add('hidden');document.getElementById('app').classList.remove('hidden');setupUser();renderFeed()}
+function setupUser(){const initial=currentUser.slice(0,1).toUpperCase();document.getElementById('headerAvatar').textContent=initial;document.getElementById('profileAvatar').textContent=initial;document.getElementById('profileName').textContent=currentUser;document.getElementById('profileId').textContent='@'+currentUser;const d=new Date();document.getElementById('todayLabel').textContent=d.toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'long'}).toUpperCase()}
+function logout(){document.getElementById('app').classList.add('hidden');document.getElementById('loginScreen').classList.remove('hidden');document.getElementById('loginPass').value=''}
+function showView(name){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(name+'View').classList.add('active');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===name));window.scrollTo({top:0,behavior:'smooth'});if(name==='home')renderFeed()}
+function toggleRecipient(){const v=document.getElementById('entryVisibility').value;const w=document.getElementById('recipientWrap');w.classList.toggle('hidden',v==='friends'||v==='private');document.getElementById('recipientLabel').textContent=v==='direct'?'送る友達':'公開するグループ';document.getElementById('recipient').innerHTML=v==='direct'?'<option>あおい</option><option>ゆう</option>':'<option>放課後グループ</option>'}
+function previewPhoto(e){const f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('写真は1.5MB以下を選んでください');e.target.value='';return}const r=new FileReader();r.onload=()=>{photoData=r.result;const p=document.getElementById('photoPreview');p.src=photoData;p.classList.remove('hidden')};r.readAsDataURL(f)}
+function publishEntry(){const body=document.getElementById('entryBody').value.trim();if(!body){toast('日記の本文を入力してください');return}const v=document.getElementById('entryVisibility').value;const labels={friends:'友達全体',direct:'個人宛て：'+document.getElementById('recipient').value,group:'グループ：'+document.getElementById('recipient').value,private:'自分だけ'};const arr=getEntries();arr.unshift({id:'p'+Date.now(),name:currentUser,date:'たった今',visibility:labels[v],title:document.getElementById('entryTitle').value.trim(),body,photo:photoData,likes:0,liked:false,comments:[]});try{saveEntries(arr)}catch(e){toast('保存できませんでした。写真のサイズを小さくしてください');return}document.getElementById('entryTitle').value='';document.getElementById('entryBody').value='';document.getElementById('entryPhoto').value='';document.getElementById('photoPreview').classList.add('hidden');photoData='';document.getElementById('entryVisibility').value='friends';toggleRecipient();toast('日記を保存しました');showView('home')}
+function renderFeed(){const all=[...getEntries(),...samples];document.getElementById('postCount').textContent=all.length+' ENTRIES';const feed=document.getElementById('feed');if(!all.length){feed.innerHTML='<div class="paper-card empty">まだ日記がありません。<br>最初の日記を書いてみましょう。</div>';return}feed.innerHTML=all.map(p=>`<article class="paper-card"><div class="post-top"><div class="avatar">${esc(p.name.slice(0,1))}</div><div><div class="post-name">${esc(p.name)}</div><div class="post-date">${esc(p.date)}</div></div><span class="visibility">${esc(p.visibility)}</span></div>${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}<div class="post-text">${esc(p.body)}</div>${p.photo?`<img class="post-photo" src="${p.photo}" alt="日記の写真">`:''}<div class="post-actions"><button class="action ${p.liked?'liked':''}" onclick="likePost('${p.id}')">♡ ${p.likes||0} いいね</button><button class="action" onclick="toggleComments('${p.id}')">▢ コメント ${(p.comments||[]).length}</button></div><div id="comments-${p.id}" class="comments ${p.showComments?'':'hidden'}">${(p.comments||[]).map(c=>`<div class="comment"><b>${esc(c.name)}：</b>${esc(c.text)}</div>`).join('')}<div class="comment-form"><input id="comment-${p.id}" placeholder="コメントを書く"><button onclick="addComment('${p.id}')">送信</button></div></div></article>`).join('')}
+function findPost(id){let arr=getEntries();let i=arr.findIndex(p=>p.id===id);if(i>=0)return {p:arr[i],arr,i,local:true};return {p:samples.find(p=>p.id===id),local:false}}
+function likePost(id){const x=findPost(id);if(!x.p)return;if(x.local){x.p.liked=!x.p.liked;x.p.likes=Math.max(0,(x.p.likes||0)+(x.p.liked?1:-1));x.arr[x.i]=x.p;saveEntries(x.arr)}else{x.p.liked=!x.p.liked;x.p.likes=Math.max(0,x.p.likes+(x.p.liked?1:-1))}renderFeed()}
+function toggleComments(id){const el=document.getElementById('comments-'+id);el.classList.toggle('hidden')}
+function addComment(id){const input=document.getElementById('comment-'+id);const t=input.value.trim();if(!t)return;const x=findPost(id);if(!x.p)return;x.p.comments=x.p.comments||[];x.p.comments.push({name:currentUser,text:t});if(x.local){x.arr[x.i]=x.p;saveEntries(x.arr)}input.value='';renderFeed();document.getElementById('comments-'+id).classList.remove('hidden')}
+function searchFriend(){const q=document.getElementById('friendSearch').value.trim();const r=document.getElementById('friendSearchResult');if(!q){r.innerHTML='<p class="hint">IDを入力してください。</p>';return}r.innerHTML=`<div class="friend"><div class="avatar">${esc(q.slice(0,1))}</div><div class="friend-info"><b>${esc(q)}</b><small>@${esc(q)}</small></div><button class="secondary" onclick="toast('フォロー申請機能は次の段階で追加します')">フォロー</button></div>`}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let toastTimer;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.add('hidden'),2300)}
+</script>
+</body>
+</html>
