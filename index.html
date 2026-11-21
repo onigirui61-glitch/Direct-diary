@@ -511,6 +511,7 @@ console.log('検索結果:',{q,profile,error});
     r.innerHTML='<p class="hint">ユーザーが見つかりませんでした。</p>';
     return;
   }
+  r.innerHTML='<pre style="white-space:pre-wrap;font-size:12px">検索ID: '+q+'\nプロフィール: '+JSON.stringify(profile)+'\nエラー: '+JSON.stringify(error)+'</pre>';
 
   if(profile.id===user.id){
     r.innerHTML='<p class="hint">これはあなた自身のアカウントです。</p>';
