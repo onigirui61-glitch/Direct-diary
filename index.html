@@ -746,14 +746,15 @@ if(visibility==='group'){
 
   const {error}=await supabaseClient
     .from('diary_posts')
-    .insert({
-      user_id:user.id,
-      title:title,
-      content:body,
-      photo_path:photoPath,
-      visibility:visibility,
-      recipient_ids:recipientIds
-    });
+   .insert({
+  user_id:user.id,
+  title:title,
+  content:body,
+  photo_path:photoPath,
+  visibility:visibility,
+  recipient_ids:recipientIds,
+  group_id:groupId
+});
 
   if(error){
     if(photoPath){
