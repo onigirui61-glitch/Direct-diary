@@ -792,7 +792,7 @@ async function renderFeed(){
 
   const {data,error}=await supabaseClient
     .from('diary_posts')
-    .select('id,user_id,title,content,photo_path,visibility,created_at')
+    .select('id,user_id,title,content,photo_path,visibility,group_id,created_at')
     .order('created_at',{ascending:false});
 
   if(error){
