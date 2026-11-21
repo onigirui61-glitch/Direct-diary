@@ -104,8 +104,12 @@ label{display:block;font-size:12px;color:#766b5e;margin:12px 0 6px}input,textare
   <div class="paper-card"><label>ユーザーIDで検索（デモ）</label><div class="row"><input id="friendSearch" placeholder="友達のID"><button class="primary" style="margin:0" onclick="searchFriend()">検索</button></div><div id="friendSearchResult"></div></div>
   <div class="section-head"><h2>友達リスト</h2><span>FRIENDS</span></div>
   <div class="paper-card" id="friendList">
-    <div class="friend"><div class="avatar">あ</div><div class="friend-info"><b>あおい</b><small>@aoi_days ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
-    <div class="friend"><div class="avatar">ゆ</div><div class="friend-info"><b>ゆう</b><small>@yuu_note ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
+    <div class="paper-card" id="friendList">
+  <div class="empty">友達を読み込んでいます...</div>
+</div><div class="avatar">あ</div><div class="friend-info"><b>あおい</b><small>@aoi_days ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
+<div class="paper-card" id="friendList">
+  <div class="empty">友達を読み込んでいます...</div>
+</div><div class="avatar">ゆ</div><div class="friend-info"><b>ゆう</b><small>@yuu_note ・ 相互フォロー</small></div><span class="visibility">友達</span></div>
   </div>
   <div class="notice">友達検索・フォロー申請は画面イメージです。実際のユーザー間通信は次の開発段階で実装します。</div>
 </section>
