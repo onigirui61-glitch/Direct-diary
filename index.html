@@ -268,6 +268,25 @@ async function publishEntry(){
   const body=document.getElementById('entryBody').value.trim();
   const title=document.getElementById('entryTitle').value.trim();
   const file=document.getElementById('entryPhoto').files[0];
+    const visibility=document.getElementById('entryVisibility').value;
+  const recipient=document.getElementById('recipient').value;
+
+  let recipientId=null;
+
+  if(visibility==='direct'){
+    const {data:target,error:targetError}=await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('username',recipient)
+      .maybeSingle();
+
+    if(targetError || !target){
+      toast('公開先の友達が見つかりません');
+      return;
+    }
+
+    recipientId=target.id;
+  }
 
   if(!body){
     toast('日記の本文を入力してください');
@@ -315,7 +334,9 @@ async function publishEntry(){
       user_id:user.id,
       title:title,
       content:body,
-      photo_path:photoPath
+      photo_path:photoPath,
+      visibility:visibility,
+      recipient_id:recipientId
     });
 
   if(error){
