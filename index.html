@@ -324,18 +324,19 @@ async function publishEntry(){
   const body=document.getElementById('entryBody').value.trim();
   const title=document.getElementById('entryTitle').value.trim();
   const file=document.getElementById('entryPhoto').files[0];
-    const visibility=document.getElementById('entryVisibility').value;
-  const recipient=document.getElementById('recipient').value;
+  const visibility=document.getElementById('entryVisibility').value;
 
-  let recipientId=null;
+  let recipientIds=[];
 
   if(visibility==='direct'){
-    if(!recipient){
-      toast('公開する友達を選択してください');
+    recipientIds=Array.from(
+      document.querySelectorAll('.recipient-checkbox:checked')
+    ).map(input=>input.value);
+
+    if(recipientIds.length===0){
+      toast('公開する友達を1人以上選択してください');
       return;
     }
-
-    recipientId=recipient;
   }
 
   if(visibility==='group'){
