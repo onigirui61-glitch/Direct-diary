@@ -422,9 +422,16 @@ async function renderFeed(){
 
   feed.innerHTML='<div class="paper-card empty">日記を読み込んでいます...</div>';
 
+  const {data:{user},error:userError}=await supabaseClient.auth.getUser();
+
+  if(userError || !user){
+    feed.innerHTML='<div class="paper-card empty">ログインしてください。</div>';
+    return;
+  }
+
   const {data,error}=await supabaseClient
     .from('diary_posts')
-    .select('id,title,content,photo_path,created_at')
+    .select('id,user_id,title,content,photo_path,visibility,created_at')
     .order('created_at',{ascending:false});
 
   if(error){
@@ -441,8 +448,46 @@ async function renderFeed(){
     return;
   }
 
+  const authorIds=[...new Set(all.map(p=>p.user_id))];
+
+  const {data:profiles,error:profileError}=await supabaseClient
+    .from('profiles')
+    .select('id,username,display_name')
+    .in('id',authorIds);
+
+  if(profileError){
+    toast('投稿者情報を読み込めませんでした');
+    return;
+  }
+
+  const profileMap={};
+  (profiles||[]).forEach(p=>{
+    profileMap[p.id]=p;
+  });
+
+  const visibilityNames={
+    friends:'友達全体',
+    direct:'特定の友達',
+    group:'グループ',
+    private:'自分だけ'
+  };
+
   const cards=await Promise.all(all.map(async p=>{
-    const date=new Date(p.created_at).toLocaleString('ja-JP');
+    const author=profileMap[p.user_id]||{
+      username:'unknown',
+      display_name:'ユーザー'
+    };
+
+    const isMine=p.user_id===user.id;
+
+    const date=new Date(p.created_at).toLocaleString('ja-JP',{
+      year:'numeric',
+      month:'numeric',
+      day:'numeric',
+      weekday:'short',
+      hour:'2-digit',
+      minute:'2-digit'
+    });
 
     let photoHTML='';
 
@@ -458,28 +503,32 @@ async function renderFeed(){
       }
     }
 
-    return `<article class="paper-card">
-      <div class="post-top">
-        <div class="avatar">${esc(currentUser.slice(0,1))}</div>
-        <div>
-          <div class="post-name">${esc(currentUser)}</div>
-          <div class="post-date">${esc(date)}</div>
-        </div>
-        <span class="visibility">自分だけ</span>
-      </div>
-      ${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}
-      <div class="post-text">${esc(p.content)}</div>
-      ${photoHTML}
+    const actionsHTML=isMine?`
       <div class="post-actions">
         <button class="action" onclick="editPost('${p.id}')">✎ 編集</button>
         <button class="action" onclick="deletePost('${p.id}')">削除</button>
       </div>
+    `:'';
+
+    return `<article class="paper-card">
+      <div class="post-top">
+        <div class="avatar">${esc(author.display_name.slice(0,1))}</div>
+        <div>
+          <div class="post-name">${esc(author.display_name)} (@${esc(author.username)})</div>
+          <div class="post-date">${esc(date)}</div>
+        </div>
+        <span class="visibility">${isMine?'自分の投稿': '友達の投稿'}</span>
+      </div>
+      ${p.title?`<div style="font:500 17px Georgia,serif;margin-top:14px">${esc(p.title)}</div>`:''}
+      <div class="post-text">${esc(p.content)}</div>
+      ${photoHTML}
+      <div class="hint">公開範囲：${esc(visibilityNames[p.visibility]||'不明')}</div>
+      ${actionsHTML}
     </article>`;
   }));
 
   feed.innerHTML=cards.join('');
 }
-
 
 async function editPost(id){
   const {data:post,error}=await supabaseClient
